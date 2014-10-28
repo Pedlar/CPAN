@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="org.notlocalhost.cpan.ui.fragments.SearchFragment">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/cpan_logo"
+        android:layout_above="@+id/search"
+        android:layout_centerHorizontal="true"/>
+
+    <EditText
+        android:id="@+id/search"
+        android:layout_centerInParent="true"
+        android:layout_width="fill_parent"
+        android:layout_margin="30dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/cpan_logo"
+        android:inputType="text"
+        android:hint="@string/search"
+        android:imeOptions="actionSearch"/>
+
+</RelativeLayout>
