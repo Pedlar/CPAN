@@ -1,17 +1,19 @@
 package org.notlocalhost.cpan.ui.fragments;
 
-import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -20,11 +22,7 @@ import org.notlocalhost.cpan.Injector;
 import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
 import org.notlocalhost.cpan.data.models.SearchModel;
-import org.notlocalhost.cpan.ui.interfaces.FragmentInterface;
-import org.notlocalhost.metacpan.models.Author;
-import org.notlocalhost.metacpan.models.Release;
-
-import java.util.ArrayList;
+import org.notlocalhost.cpan.view.ObservableWebView;
 
 import javax.inject.Inject;
 
@@ -52,10 +50,20 @@ public class ModuleDetailsFragment extends BaseFragment {
     public RatingBar ratingBar;
 
     @InjectView(R.id.pod_view)
-    public WebView podView;
+    public ObservableWebView podView;
+
+    @InjectView(R.id.toolbar)
+    public Toolbar mToolbar;
+
+    @InjectView(R.id.header_container)
+    LinearLayout mHeaderContainer;
 
     @Inject
     ApiInteractor mApiInteractor;
+
+    private int mLastScrollPosition;
+
+    private float mHeaderOriginalY;
 
     public ModuleDetailsFragment() {
 
@@ -83,6 +91,9 @@ public class ModuleDetailsFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_module_details, container, false);
         ButterKnife.inject(this, view);
+
+        mToolbar.setLogo(R.drawable.ic_launcher);
+        mToolbar.setTitle(getResources().getString(R.string.app_name));
 
         String moduleNameText = searchModel.release.getDistribution().replace("-", "::");
         moduleName.setText(moduleNameText);
@@ -114,6 +125,52 @@ public class ModuleDetailsFragment extends BaseFragment {
             }
         }.execute(searchModel.release.getDistribution());
 
+        podView.setOnScrollListener(new ObservableWebView.OnScrollListener() {
+            @Override
+            public void onScroll(int v, int h) {
+                int delta = v - mLastScrollPosition;
+                if(mLastScrollPosition > v) { // Scroll Up
+                    mHeaderContainer.setY(mHeaderContainer.getY() - delta);
+                    float bottomOfHeaderY = mHeaderContainer.getY() + mHeaderContainer.getMeasuredHeight();
+                    if(podView.getY() <= bottomOfHeaderY) {
+                        float setY = podView.getY() - delta;
+                        if(setY > bottomOfHeaderY) {
+                            setY = bottomOfHeaderY;
+                        }
+                        podView.setY(setY);
+                    }
+                } else { // Scroll Down
+                    delta = delta * -1;
+                    mHeaderContainer.setY(mHeaderContainer.getY() + delta);
+                    if(podView.getY() >= mHeaderOriginalY) {
+                        float setY = podView.getY() + delta;
+                        if(setY < mHeaderOriginalY) {
+                            setY = mHeaderOriginalY;
+                        }
+                        podView.setY(setY);
+                    }
+                }
+                mLastScrollPosition = v;
+            }
+        });
         return view;
+    }
+
+    @Override
+    public void onViewCreated (final View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mHeaderOriginalY = mHeaderContainer.getY();
+                float newPodHeight = podView.getMeasuredHeight() + mHeaderContainer.getMeasuredHeight();
+
+                LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) podView.getLayoutParams();
+                layoutParams.height = (int)newPodHeight;
+                podView.setLayoutParams(layoutParams);
+
+                view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+        });
     }
 }

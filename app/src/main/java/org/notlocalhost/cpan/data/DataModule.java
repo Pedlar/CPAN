@@ -1,23 +1,17 @@
 package org.notlocalhost.cpan.data;
 
-import android.support.annotation.NonNull;
+
+import android.content.Context;
 
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
-import org.notlocalhost.cpan.ui.activities.BaseActivity;
+import org.notlocalhost.cpan.data.interfaces.DataInteractor;
+import org.notlocalhost.cpan.data.interfaces.SqliteService;
 import org.notlocalhost.cpan.ui.activities.MainActivity;
 import org.notlocalhost.cpan.ui.fragments.SearchFragment;
-import org.notlocalhost.metacpan.MetaCpan;
-import org.notlocalhost.metacpan.services.MetaApiService;
+import org.notlocalhost.sqliteadapter.SQLiteAdapter;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.inject.Singleton;
 
@@ -35,8 +29,12 @@ import dagger.Provides;
         library = true
 )
 public class DataModule {
-    public DataModule() {
-
+    SQLiteAdapter sqLiteAdapter;
+    public DataModule(Context application) {
+        sqLiteAdapter = new SQLiteAdapter.Builder(application)
+                .setSchemas(SearchHistory.class)
+                .setDatabaseName("cpan_db.db")
+                .build();
     }
 
     @Provides
@@ -49,6 +47,18 @@ public class DataModule {
     @Singleton
     public ApiInteractor provideApiInteractor() {
         return new ApiInteractorImpl();
+    }
+
+    @Provides
+    @Singleton
+    public DataInteractor provideDataInteractor(SqliteService sqliteService) {
+        return new DataInteractorImpl(sqliteService);
+    }
+
+    @Provides
+    @Singleton
+    public SqliteService provideSqliteService() {
+        return sqLiteAdapter.create(SqliteService.class);
     }
 
 }

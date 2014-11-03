@@ -1,29 +1,30 @@
 package org.notlocalhost.cpan.ui.fragments;
 
-import android.app.Activity;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.notlocalhost.cpan.Constants;
 import org.notlocalhost.cpan.Injector;
 import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.data.models.SearchModel;
-import org.notlocalhost.cpan.ui.interfaces.FragmentInterface;
+import org.notlocalhost.cpan.ui.interfaces.Callback;
 import org.notlocalhost.cpan.ui.interfaces.SearchInteractor;
 import org.notlocalhost.cpan.ui.itemanimator.SlideInLeftItemAnimator;
 import org.notlocalhost.metacpan.models.Release;
@@ -31,14 +32,14 @@ import org.notlocalhost.metacpan.models.Release;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnItemClick;
 import rx.Subscriber;
-import rx.functions.Action1;
+import rx.Subscription;
 
 
 /**
@@ -52,8 +53,15 @@ public class SearchResultFragment extends BaseFragment {
     @InjectView(R.id.recycler_view)
     RecyclerView mRecycleView;
 
+    @InjectView(R.id.toolbar)
+    Toolbar mToolbar;
+
+    SearchView mSearchView;
+
     @Inject
     SearchInteractor mSearchInteractor;
+
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -67,6 +75,10 @@ public class SearchResultFragment extends BaseFragment {
     private boolean safeToGetMore = false;
 
     private String mSearchString;
+
+    private Subscription mModelSubscription;
+
+    private CursorAdapter mSearchAdapter;
 
     public SearchResultFragment() {
 
@@ -112,16 +124,42 @@ public class SearchResultFragment extends BaseFragment {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(mModelSubscription != null &&
+                !mModelSubscription.isUnsubscribed()) {
+            mModelSubscription.unsubscribe();
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search_results, container, false);
         ButterKnife.inject(this, view);
 
+        mToolbar.inflateMenu(R.menu.search_menu);
+        mToolbar.setLogo(R.drawable.ic_launcher);
+        mSearchView = (SearchView)mToolbar.getMenu().findItem(R.id.action_search).getActionView();
+
+        setupSearchView();
+
+        setupRecyclerView();
+
+        if(mReleaseList.size() != searchModels.size()) {
+            getReleaseInformation(mReleaseList);
+        }
+
+
+        return view;
+    }
+
+    private void setupRecyclerView() {
         mRecycleView.setHasFixedSize(true);
 
         mLayoutManager = new LinearLayoutManager(getActivity()) {
             @Override
-            public int scrollVerticallyBy(int dy, android.support.v7.widget.RecyclerView.Recycler recycler, android.support.v7.widget.RecyclerView.State state) {
+            public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
                 int x = super.scrollVerticallyBy(dy, recycler, state);
                 int lastItem = findLastVisibleItemPosition() + 1;
                 if(x == 0) {
@@ -142,12 +180,68 @@ public class SearchResultFragment extends BaseFragment {
         mRecycleView.setAdapter(mAdapter);
 
         mRecycleView.setItemAnimator(new SlideInLeftItemAnimator(mRecycleView));
+    }
 
-        if(mReleaseList.size() != searchModels.size()) {
-            mSearchInteractor.getReleaseInformation(mReleaseList).subscribe(new ReleaseSubscriber());
+    private void setupSearchView() {
+        mSearchView.setBackgroundColor(getResources().getColor(android.R.color.white));
+        mSearchView.setQueryHint(getResources().getString(R.string.search));
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                if(s.length() > 0) {
+                    Future future = mSearchInteractor.performSearch(s, mListener, new Callback<ArrayList<Release>>() {
+                        @Override
+                        public void call(final ArrayList<Release> releaseList) {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mReleaseList.clear();
+                                    searchModels.clear();
+                                    mAdapter.notifyDataSetChanged();
+                                    mReleaseList.addAll(releaseList);
+                                    getReleaseInformation(releaseList);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    return true; // Keep the keyboard open.
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                Cursor c = mSearchInteractor.getSearchSuggestions(s);
+                mSearchAdapter.changeCursor(c);
+                return false;
+            }
+        });
+
+        mSearchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int i) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int i) {
+                Cursor c = (Cursor)mSearchAdapter.getItem(i);
+                String query = c.getString(c.getColumnIndex(Constants.SEARCH_STRING));
+                mSearchView.setQuery(query, true);
+                return true;
+            }
+        });
+
+        mSearchAdapter = mSearchInteractor.getCursorAdapter(getActivity());
+        mSearchView.setSuggestionsAdapter(mSearchAdapter);
+    }
+
+    public void getReleaseInformation(List<Release> releaseList) {
+        if(mModelSubscription != null && !mModelSubscription.isUnsubscribed()) {
+            mModelSubscription.unsubscribe();
         }
-
-        return view;
+        mModelSubscription = mSearchInteractor.getReleaseInformation(releaseList).subscribe(new ReleaseSubscriber());
     }
 
     public class ListViewAdapter extends RecyclerView.Adapter<ListViewItem> {
@@ -221,6 +315,7 @@ public class SearchResultFragment extends BaseFragment {
         @Override
         public void onClick(View v) {
             if(this.model != null && mListener != null) {
+                mSearchInteractor.addSearchSuggestion(model.release.getDistribution());
                 mListener.openFragment(ModuleDetailsFragment.newInstance(model), model.release.getDistribution());
             }
         }
@@ -243,7 +338,7 @@ public class SearchResultFragment extends BaseFragment {
         @Override
         protected void onPostExecute(List<Release> releaseList) {
             mReleaseList.addAll(releaseList);
-            mSearchInteractor.getReleaseInformation(releaseList).subscribe(new ReleaseSubscriber());
+            getReleaseInformation(releaseList);
         }
     }
 }

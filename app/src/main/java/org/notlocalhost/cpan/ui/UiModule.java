@@ -1,6 +1,7 @@
 package org.notlocalhost.cpan.ui;
 
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
+import org.notlocalhost.cpan.data.interfaces.DataInteractor;
 import org.notlocalhost.cpan.ui.fragments.ModuleDetailsFragment;
 import org.notlocalhost.cpan.ui.fragments.SearchFragment;
 import org.notlocalhost.cpan.ui.fragments.SearchResultFragment;
@@ -24,7 +25,7 @@ import dagger.Provides;
 public class UiModule {
 
     @Provides
-    public SearchInteractor provideSearchInteractor(ExecutorService executorService, ApiInteractor apiInteractor) {
-        return new SearchInteractorImpl(executorService, apiInteractor);
+    public SearchInteractor provideSearchInteractor(ExecutorService executorService, ApiInteractor apiInteractor, DataInteractor dataInteractor) {
+        return new SearchInteractorImpl(executorService, apiInteractor, dataInteractor);
     }
 }

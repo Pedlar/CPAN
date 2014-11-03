@@ -4,7 +4,9 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:minHeight="38dp"
+    android:minWidth="38dp">
 
     <android.support.v7.widget.CardView
         android:id="@+id/card_view"
@@ -18,19 +20,17 @@
         card_view:cardCornerRadius="4dp"
         android:foreground="?attr/selectableItemBackground">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:padding="10dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:weightSum="2">
+            android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/module_name_container"
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="5dp"
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp">
                 <TextView
@@ -44,11 +44,11 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/author_container"
+                android:layout_below="@+id/module_name_container"
                 android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="5dp"
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp"
                 android:weightSum="2"
@@ -61,26 +61,37 @@
                     android:id="@+id/author_gravatar"/>
 
                 <TextView
+                    android:paddingLeft="10dp"
                     android:id="@+id/author_name"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:layout_width="0dp"
                     android:layout_weight="1.9"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:textSize="17sp"
-                    android:text="Author Name"/>
+                    android:text="Author Name"
+                    android:textColor="?android:textColorSecondary"
+                    android:gravity="center_vertical"/>
 
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/author_container"
+                android:layout_alignTop="@+id/author_container"
+                android:layout_alignParentRight="true"
+                android:gravity="center_vertical">
                 <RatingBar
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:numStars="5"
                     android:id="@+id/ratingBar"
-                    android:isIndicator="true"
-                    android:layout_gravity="center_horizontal" />
+                    android:isIndicator="true"/>
             </LinearLayout>
 
-        </LinearLayout>
+        </RelativeLayout>
         
     </android.support.v7.widget.CardView>
 </LinearLayout>

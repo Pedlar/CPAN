@@ -1,6 +1,5 @@
 package org.notlocalhost.cpan.data.interfaces;
 
-import org.notlocalhost.cpan.data.ApiInteractorImpl;
 import org.notlocalhost.metacpan.models.Author;
 import org.notlocalhost.metacpan.models.Module;
 import org.notlocalhost.metacpan.models.Release;

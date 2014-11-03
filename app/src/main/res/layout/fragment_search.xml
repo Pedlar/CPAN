@@ -2,24 +2,45 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="org.notlocalhost.cpan.ui.fragments.SearchFragment">
+    tools:context="org.notlocalhost.cpan.ui.fragments.SearchFragment"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="?attr/colorPrimary"
+        android:layout_width="match_parent">
+
+    </android.support.v7.widget.Toolbar>
 
     <ImageView
+        android:id="@+id/cpan_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/cpan_logo"
         android:layout_above="@+id/search"
         android:layout_centerHorizontal="true"/>
 
-    <EditText
+    <View
+        android:id="@+id/window_tint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ff000000"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:alpha="0"/>
+
+    <android.support.v7.widget.SearchView
         android:id="@+id/search"
         android:layout_centerInParent="true"
         android:layout_width="fill_parent"
         android:layout_margin="30dp"
-        android:layout_height="wrap_content"
-        android:src="@drawable/cpan_logo"
+        android:layout_height="?attr/actionBarSize"
         android:inputType="text"
-        android:hint="@string/search"
-        android:imeOptions="actionSearch"/>
-
+        app:queryHint="@string/search"
+        android:imeOptions="actionSearch"
+        app:elevation="4dp"
+        app:iconifiedByDefault="false"
+        android:background="@drawable/border_black"/>
 </RelativeLayout>

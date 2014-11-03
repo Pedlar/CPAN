@@ -11,7 +11,7 @@ public class CpanApplication extends Application {
 
     @Override
     public void onCreate() {
-        Injector.init(Modules.list());
+        Injector.init(Modules.list(this));
     }
 
 }
