@@ -19,6 +19,7 @@ import org.notlocalhost.cpan.Constants;
 import org.notlocalhost.cpan.Injector;
 import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.ui.interfaces.SearchInteractor;
+import org.notlocalhost.cpan.view.NavigationDrawable;
 
 import java.util.concurrent.Future;
 
@@ -81,8 +82,12 @@ public class SearchFragment extends BaseFragment {
         ButterKnife.inject(this, view);
         ((LayerDrawable)mSearchView.getBackground()).getDrawable(1).setAlpha(0);
 
-        mToolbar.setLogo(R.drawable.ic_launcher);
-        mToolbar.setTitle(R.string.app_name);
+        mListener.getToolbar().setVisibility(View.GONE);
+
+        NavigationDrawable navigationDrawable = new NavigationDrawable(getActivity(), Color.RED, NavigationDrawable.Stroke.REGULAR);
+
+        mToolbar.setNavigationIcon(navigationDrawable);
+        mToolbar.setTitle(mListener.getToolbar().getTitle());
 
         setupSearchView();
 

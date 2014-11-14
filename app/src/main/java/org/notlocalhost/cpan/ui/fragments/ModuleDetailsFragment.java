@@ -1,8 +1,14 @@
 package org.notlocalhost.cpan.ui.fragments;
 
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.SharedElementCallback;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.transition.ChangeBounds;
+import android.transition.Fade;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +29,8 @@ import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
 import org.notlocalhost.cpan.data.models.SearchModel;
 import org.notlocalhost.cpan.view.ObservableWebView;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -52,11 +60,8 @@ public class ModuleDetailsFragment extends BaseFragment {
     @InjectView(R.id.pod_view)
     public ObservableWebView podView;
 
-    @InjectView(R.id.toolbar)
-    public Toolbar mToolbar;
-
     @InjectView(R.id.header_container)
-    LinearLayout mHeaderContainer;
+    CardView mHeaderContainer;
 
     @Inject
     ApiInteractor mApiInteractor;
@@ -66,7 +71,14 @@ public class ModuleDetailsFragment extends BaseFragment {
     private float mHeaderOriginalY;
 
     public ModuleDetailsFragment() {
-
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setSharedElementReturnTransition(new ChangeBounds());
+            setSharedElementEnterTransition(new ChangeBounds());
+            setAllowEnterTransitionOverlap(true);
+            setAllowReturnTransitionOverlap(true);
+            setEnterTransition(new Fade());
+            setExitTransition(new Fade());
+        }
     }
 
     public static ModuleDetailsFragment newInstance(SearchModel searchModel) {
@@ -91,9 +103,7 @@ public class ModuleDetailsFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_module_details, container, false);
         ButterKnife.inject(this, view);
-
-        mToolbar.setLogo(R.drawable.ic_launcher);
-        mToolbar.setTitle(getResources().getString(R.string.app_name));
+        ViewCompat.setTransitionName(mHeaderContainer, searchModel.release.getDistribution());
 
         String moduleNameText = searchModel.release.getDistribution().replace("-", "::");
         moduleName.setText(moduleNameText);

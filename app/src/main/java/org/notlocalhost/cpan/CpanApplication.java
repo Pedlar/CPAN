@@ -1,6 +1,7 @@
 package org.notlocalhost.cpan;
 
 import android.app.Application;
+import android.graphics.drawable.VectorDrawable;
 
 import javax.inject.Inject;
 

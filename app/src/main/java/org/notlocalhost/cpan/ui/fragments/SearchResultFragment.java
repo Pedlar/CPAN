@@ -2,15 +2,21 @@ package org.notlocalhost.cpan.ui.fragments;
 
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.SharedElementCallback;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.transition.ChangeBounds;
+import android.transition.Slide;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +33,7 @@ import org.notlocalhost.cpan.data.models.SearchModel;
 import org.notlocalhost.cpan.ui.interfaces.Callback;
 import org.notlocalhost.cpan.ui.interfaces.SearchInteractor;
 import org.notlocalhost.cpan.ui.itemanimator.SlideInLeftItemAnimator;
+import org.notlocalhost.cpan.view.NavigationDrawable;
 import org.notlocalhost.metacpan.models.Release;
 
 import java.util.ArrayList;
@@ -53,7 +60,6 @@ public class SearchResultFragment extends BaseFragment {
     @InjectView(R.id.recycler_view)
     RecyclerView mRecycleView;
 
-    @InjectView(R.id.toolbar)
     Toolbar mToolbar;
 
     SearchView mSearchView;
@@ -138,8 +144,15 @@ public class SearchResultFragment extends BaseFragment {
         View view = inflater.inflate(R.layout.fragment_search_results, container, false);
         ButterKnife.inject(this, view);
 
-        mToolbar.inflateMenu(R.menu.search_menu);
-        mToolbar.setLogo(R.drawable.ic_launcher);
+        if(!mListener.getNavigationDrawable().isRunning()) {
+            mListener.getNavigationDrawable().animateIconState(NavigationDrawable.IconState.BURGER, false);
+        }
+        
+        mToolbar = mListener.getToolbar();
+        mToolbar.setVisibility(View.VISIBLE);
+        if (mToolbar.getMenu().findItem(R.id.action_search) == null) {
+            mToolbar.inflateMenu(R.menu.search_menu);
+        }
         mSearchView = (SearchView)mToolbar.getMenu().findItem(R.id.action_search).getActionView();
 
         setupSearchView();
@@ -305,6 +318,7 @@ public class SearchResultFragment extends BaseFragment {
 
         public void setModel(SearchModel model) {
             this.model = model;
+            ViewCompat.setTransitionName(cardView, model.release.getDistribution());
             String moduleNameString = model.release.getDistribution().replace("-", "::");
             moduleName.setText(moduleNameString);
             authorName.setText(model.author.getPauseId());
@@ -316,7 +330,8 @@ public class SearchResultFragment extends BaseFragment {
         public void onClick(View v) {
             if(this.model != null && mListener != null) {
                 mSearchInteractor.addSearchSuggestion(model.release.getDistribution());
-                mListener.openFragment(ModuleDetailsFragment.newInstance(model), model.release.getDistribution());
+                ((NavigationDrawable)mListener.getToolbar().getNavigationIcon()).animateIconState(NavigationDrawable.IconState.ARROW, true);
+                mListener.openFragment(ModuleDetailsFragment.newInstance(model), model.release.getDistribution(), v, model.release.getDistribution());
             }
         }
     }
