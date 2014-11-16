@@ -30,7 +30,9 @@ import dagger.Provides;
 )
 public class DataModule {
     SQLiteAdapter sqLiteAdapter;
+    Context applicationContext;
     public DataModule(Context application) {
+        applicationContext = application;
         sqLiteAdapter = new SQLiteAdapter.Builder(application)
                 .setSchemas(SearchHistory.class)
                 .setDatabaseName("cpan_db.db")
@@ -46,7 +48,7 @@ public class DataModule {
     @Provides
     @Singleton
     public ApiInteractor provideApiInteractor() {
-        return new ApiInteractorImpl();
+        return new ApiInteractorImpl(applicationContext);
     }
 
     @Provides

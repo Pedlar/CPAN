@@ -1,9 +1,6 @@
 package org.notlocalhost.cpan;
 
 import android.app.Application;
-import android.graphics.drawable.VectorDrawable;
-
-import javax.inject.Inject;
 
 /**
  * Created by pedlar on 10/11/14.

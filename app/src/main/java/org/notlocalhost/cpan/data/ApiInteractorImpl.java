@@ -1,5 +1,7 @@
 package org.notlocalhost.cpan.data;
 
+import android.content.Context;
+
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
 import org.notlocalhost.metacpan.MetaCpan;
 import org.notlocalhost.metacpan.PodOutput;
@@ -17,8 +19,8 @@ import retrofit.RestAdapter;
 public class ApiInteractorImpl implements ApiInteractor {
     MetaCpan mMetaCpan;
 
-    public ApiInteractorImpl() {
-        mMetaCpan = MetaCpan.instance();
+    public ApiInteractorImpl(Context applicationContext) {
+        mMetaCpan = MetaCpan.instance(applicationContext.getCacheDir());
         mMetaCpan.setLogLevel(RestAdapter.LogLevel.BASIC);
     }
 

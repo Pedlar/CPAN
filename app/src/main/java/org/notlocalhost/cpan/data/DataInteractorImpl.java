@@ -2,7 +2,6 @@ package org.notlocalhost.cpan.data;
 
 import org.notlocalhost.cpan.data.interfaces.DataInteractor;
 import org.notlocalhost.cpan.data.interfaces.SqliteService;
-import org.notlocalhost.cpan.data.models.SearchModel;
 
 import java.util.ArrayList;
 

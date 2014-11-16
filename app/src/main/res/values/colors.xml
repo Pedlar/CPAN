@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="color_primary_dark">#ff455a64</color>
+    <color name="color_primary_dark_alpha">#be455a64</color>
+
     <color name="color_primary">#ff607d8b</color>
+    <color name="red">#FFFF0000</color>
 </resources>

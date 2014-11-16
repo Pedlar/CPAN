@@ -16,4 +16,5 @@ public interface FragmentInterface {
     public void openFragment(Fragment fragment, String tag, View sharedView, String sharedName);
     public Toolbar getToolbar();
     public NavigationDrawable getNavigationDrawable();
+    public void toggleTopFab(boolean show);
 }

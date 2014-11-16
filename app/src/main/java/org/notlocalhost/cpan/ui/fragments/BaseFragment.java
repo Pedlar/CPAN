@@ -1,14 +1,8 @@
 package org.notlocalhost.cpan.ui.fragments;
 
 import android.app.Activity;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.transition.ChangeBounds;
-import android.transition.ChangeTransform;
-import android.transition.Fade;
-import android.transition.SidePropagation;
-import android.transition.Slide;
 
 import org.notlocalhost.cpan.ui.interfaces.FragmentInterface;
 
@@ -38,5 +32,17 @@ public class BaseFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    /**
+     *
+     *
+     * {@inheritDoc onBackPressed}
+     *
+     * @return true if handled
+     *
+     */
+    public boolean onBackPressed() {
+        return false;
     }
 }

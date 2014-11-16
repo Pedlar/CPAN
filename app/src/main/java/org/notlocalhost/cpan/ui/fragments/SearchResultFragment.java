@@ -1,22 +1,15 @@
 package org.notlocalhost.cpan.ui.fragments;
 
-import android.database.Cursor;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.app.SharedElementCallback;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.transition.ChangeBounds;
-import android.transition.Slide;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +19,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.notlocalhost.cpan.Constants;
 import org.notlocalhost.cpan.Injector;
 import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.data.models.SearchModel;
-import org.notlocalhost.cpan.ui.interfaces.Callback;
 import org.notlocalhost.cpan.ui.interfaces.SearchInteractor;
 import org.notlocalhost.cpan.ui.itemanimator.SlideInLeftItemAnimator;
 import org.notlocalhost.cpan.view.NavigationDrawable;
@@ -39,7 +30,6 @@ import org.notlocalhost.metacpan.models.Release;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 
@@ -61,8 +51,6 @@ public class SearchResultFragment extends BaseFragment {
     RecyclerView mRecycleView;
 
     Toolbar mToolbar;
-
-    SearchView mSearchView;
 
     @Inject
     SearchInteractor mSearchInteractor;
@@ -147,22 +135,17 @@ public class SearchResultFragment extends BaseFragment {
         if(!mListener.getNavigationDrawable().isRunning()) {
             mListener.getNavigationDrawable().animateIconState(NavigationDrawable.IconState.BURGER, false);
         }
-        
+
+        mListener.toggleTopFab(true);
+
         mToolbar = mListener.getToolbar();
         mToolbar.setVisibility(View.VISIBLE);
-        if (mToolbar.getMenu().findItem(R.id.action_search) == null) {
-            mToolbar.inflateMenu(R.menu.search_menu);
-        }
-        mSearchView = (SearchView)mToolbar.getMenu().findItem(R.id.action_search).getActionView();
-
-        setupSearchView();
 
         setupRecyclerView();
 
         if(mReleaseList.size() != searchModels.size()) {
             getReleaseInformation(mReleaseList);
         }
-
 
         return view;
     }
@@ -193,61 +176,6 @@ public class SearchResultFragment extends BaseFragment {
         mRecycleView.setAdapter(mAdapter);
 
         mRecycleView.setItemAnimator(new SlideInLeftItemAnimator(mRecycleView));
-    }
-
-    private void setupSearchView() {
-        mSearchView.setBackgroundColor(getResources().getColor(android.R.color.white));
-        mSearchView.setQueryHint(getResources().getString(R.string.search));
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                if(s.length() > 0) {
-                    Future future = mSearchInteractor.performSearch(s, mListener, new Callback<ArrayList<Release>>() {
-                        @Override
-                        public void call(final ArrayList<Release> releaseList) {
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mReleaseList.clear();
-                                    searchModels.clear();
-                                    mAdapter.notifyDataSetChanged();
-                                    mReleaseList.addAll(releaseList);
-                                    getReleaseInformation(releaseList);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    return true; // Keep the keyboard open.
-                }
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                Cursor c = mSearchInteractor.getSearchSuggestions(s);
-                mSearchAdapter.changeCursor(c);
-                return false;
-            }
-        });
-
-        mSearchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionSelect(int i) {
-                return false;
-            }
-
-            @Override
-            public boolean onSuggestionClick(int i) {
-                Cursor c = (Cursor)mSearchAdapter.getItem(i);
-                String query = c.getString(c.getColumnIndex(Constants.SEARCH_STRING));
-                mSearchView.setQuery(query, true);
-                return true;
-            }
-        });
-
-        mSearchAdapter = mSearchInteractor.getCursorAdapter(getActivity());
-        mSearchView.setSuggestionsAdapter(mSearchAdapter);
     }
 
     public void getReleaseInformation(List<Release> releaseList) {

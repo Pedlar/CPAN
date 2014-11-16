@@ -3,7 +3,6 @@ package org.notlocalhost.cpan.data;
 import org.notlocalhost.cpan.Constants;
 import org.notlocalhost.sqliteadapter.Schema;
 import org.notlocalhost.sqliteadapter.annotations.Column;
-import org.notlocalhost.sqliteadapter.annotations.Table;
 import org.notlocalhost.sqliteadapter.annotations.TableName;
 
 /**

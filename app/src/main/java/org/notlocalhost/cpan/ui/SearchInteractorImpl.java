@@ -29,6 +29,7 @@ import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -107,6 +108,19 @@ public class SearchInteractorImpl implements SearchInteractor {
     public void addSearchSuggestion(String suggestion) {
         suggestion = suggestion.replaceAll("\\-", "::");
         mDataInteractor.addSearchHistory(suggestion);
+    }
+
+    @Override
+    public Observable<Release> getAuthorReleases(String pauseId) {
+        return Observable.from(internalPerformSearch("author:" + pauseId.toUpperCase(), null, null, 100, 0))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Func1<List<Release>, Observable<Release>>() {
+                    @Override
+                    public Observable<Release> call(List<Release> releaseList) {
+                        return Observable.from(releaseList);
+                    }
+                });
     }
 
     private Future<List<Release>> internalPerformSearch(String query, final FragmentInterface listener, final Callback<ArrayList<Release>> callback, final int size, final int offset) {

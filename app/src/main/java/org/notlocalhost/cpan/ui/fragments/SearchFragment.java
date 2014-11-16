@@ -82,6 +82,8 @@ public class SearchFragment extends BaseFragment {
         ButterKnife.inject(this, view);
         ((LayerDrawable)mSearchView.getBackground()).getDrawable(1).setAlpha(0);
 
+        mListener.toggleTopFab(false);
+
         mListener.getToolbar().setVisibility(View.GONE);
 
         NavigationDrawable navigationDrawable = new NavigationDrawable(getActivity(), Color.RED, NavigationDrawable.Stroke.REGULAR);

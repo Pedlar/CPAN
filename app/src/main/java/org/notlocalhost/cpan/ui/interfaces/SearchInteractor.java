@@ -3,7 +3,6 @@ package org.notlocalhost.cpan.ui.interfaces;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
-import android.support.v7.widget.SearchView;
 
 import org.notlocalhost.cpan.data.models.SearchModel;
 import org.notlocalhost.metacpan.models.Release;
@@ -24,4 +23,5 @@ public interface SearchInteractor {
     public Cursor getSearchSuggestions(String search);
     public CursorAdapter getCursorAdapter(Context context);
     public void addSearchSuggestion(String suggestion);
+    public Observable<Release> getAuthorReleases(String pauseId);
 }

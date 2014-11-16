@@ -3,13 +3,12 @@ package org.notlocalhost.cpan.ui.fragments;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.SharedElementCallback;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.Toolbar;
 import android.transition.ChangeBounds;
-import android.transition.Fade;
-import android.util.Log;
+import android.transition.Transition;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,15 +21,17 @@ import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.squareup.picasso.Picasso;
 
 import org.notlocalhost.cpan.Injector;
 import org.notlocalhost.cpan.R;
 import org.notlocalhost.cpan.data.interfaces.ApiInteractor;
 import org.notlocalhost.cpan.data.models.SearchModel;
+import org.notlocalhost.cpan.ui.fragments.dialogs.AuthorDialogFragment;
 import org.notlocalhost.cpan.view.ObservableWebView;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -57,6 +58,9 @@ public class ModuleDetailsFragment extends BaseFragment {
     @InjectView(R.id.ratingBar)
     public RatingBar ratingBar;
 
+    @InjectView(R.id.author_container)
+    public LinearLayout mAuthorContainer;
+
     @InjectView(R.id.pod_view)
     public ObservableWebView podView;
 
@@ -70,14 +74,26 @@ public class ModuleDetailsFragment extends BaseFragment {
 
     private float mHeaderOriginalY;
 
+    private ShowcaseView mScv;
+
     public ModuleDetailsFragment() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Transition transition = new ChangeBounds();
+            transition.addListener(new Transition.TransitionListener() {
+                @Override
+                public void onTransitionEnd(Transition transition) {
+                    showShowcaseView();
+                }
+                @Override public void onTransitionStart(Transition transition) { }
+                @Override public void onTransitionCancel(Transition transition) {}
+                @Override public void onTransitionPause(Transition transition) {}
+                @Override public void onTransitionResume(Transition transition) {}
+            });
+
             setSharedElementReturnTransition(new ChangeBounds());
-            setSharedElementEnterTransition(new ChangeBounds());
+            setSharedElementEnterTransition(transition);
             setAllowEnterTransitionOverlap(true);
             setAllowReturnTransitionOverlap(true);
-            setEnterTransition(new Fade());
-            setExitTransition(new Fade());
         }
     }
 
@@ -105,11 +121,27 @@ public class ModuleDetailsFragment extends BaseFragment {
         ButterKnife.inject(this, view);
         ViewCompat.setTransitionName(mHeaderContainer, searchModel.release.getDistribution());
 
+        mListener.toggleTopFab(true);
+
         String moduleNameText = searchModel.release.getDistribution().replace("-", "::");
         moduleName.setText(moduleNameText);
         authorName.setText(searchModel.author.getPauseId());
         ratingBar.setRating(searchModel.rating);
         Picasso.with(getActivity()).load(searchModel.author.getGravatarUrl()).into(authorGravatar);
+
+        ViewCompat.setTransitionName(authorGravatar, searchModel.author.getName());
+        mAuthorContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AuthorDialogFragment dialogFragment = AuthorDialogFragment.newInstance(searchModel.author);
+                FragmentManager fm = getFragmentManager();
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                ft.addSharedElement(authorGravatar, searchModel.author.getName());
+
+                dialogFragment.show(ft, AuthorDialogFragment.TAG);
+            }
+        });
 
         podView.setWebViewClient(new WebViewClient() {
             @Override
@@ -139,12 +171,12 @@ public class ModuleDetailsFragment extends BaseFragment {
             @Override
             public void onScroll(int v, int h) {
                 int delta = v - mLastScrollPosition;
-                if(mLastScrollPosition > v) { // Scroll Up
+                if (mLastScrollPosition > v) { // Scroll Up
                     mHeaderContainer.setY(mHeaderContainer.getY() - delta);
                     float bottomOfHeaderY = mHeaderContainer.getY() + mHeaderContainer.getMeasuredHeight();
-                    if(podView.getY() <= bottomOfHeaderY) {
+                    if (podView.getY() <= bottomOfHeaderY) {
                         float setY = podView.getY() - delta;
-                        if(setY > bottomOfHeaderY) {
+                        if (setY > bottomOfHeaderY) {
                             setY = bottomOfHeaderY;
                         }
                         podView.setY(setY);
@@ -152,9 +184,9 @@ public class ModuleDetailsFragment extends BaseFragment {
                 } else { // Scroll Down
                     delta = delta * -1;
                     mHeaderContainer.setY(mHeaderContainer.getY() + delta);
-                    if(podView.getY() >= mHeaderOriginalY) {
+                    if (podView.getY() >= mHeaderOriginalY) {
                         float setY = podView.getY() + delta;
-                        if(setY < mHeaderOriginalY) {
+                        if (setY < mHeaderOriginalY) {
                             setY = mHeaderOriginalY;
                         }
                         podView.setY(setY);
@@ -163,12 +195,28 @@ public class ModuleDetailsFragment extends BaseFragment {
                 mLastScrollPosition = v;
             }
         });
+
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if(mScv != null && mScv.isShown()) {
+            mScv.hide();
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void onViewCreated (final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -182,5 +230,48 @@ public class ModuleDetailsFragment extends BaseFragment {
                 view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
             }
         });
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            showShowcaseView();
+        }
+    }
+
+    private void showShowcaseView() {
+        if (getActivity() != null) {
+            RelativeLayout.LayoutParams lps = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lps.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            lps.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            int margin = ((Number) (getResources().getDisplayMetrics().density * 60)).intValue();
+            lps.setMargins(margin, margin, margin, margin);
+
+            ViewTarget authorTarget = new ViewTarget(authorGravatar);
+            mScv = new ShowcaseView.Builder(getActivity(), true)
+                    .setContentTitle("Get Author Information")
+                    .setContentText("Touch the authors Gravatar to see more from this author.")
+                    .singleShot(R.id.author_gravatar)
+                    .setTarget(authorTarget)
+                    .hideOnTouchOutside()
+                    .setShowcaseEventListener(new OnShowcaseEventListener() {
+                        @Override
+                        public void onShowcaseViewHide(ShowcaseView showcaseView) {
+                            if (podView != null) {
+                                podView.setAlpha(1);
+                            }
+                        }
+
+                        @Override
+                        public void onShowcaseViewShow(ShowcaseView showcaseView) {
+                            if (podView != null) {
+                                podView.setAlpha(0.5f);
+                            }
+                        }
+
+                        @Override
+                        public void onShowcaseViewDidHide(ShowcaseView showcaseView) {
+                        }
+                    })
+                    .build();
+            mScv.setButtonPosition(lps);
+        }
     }
 }

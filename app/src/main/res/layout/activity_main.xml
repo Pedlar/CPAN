@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,13 +9,47 @@
         android:id="@+id/toolbar"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:layout_alignParentTop="true">
 
     </android.support.v7.widget.Toolbar>
 
     <FrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar"/>
 
-</LinearLayout>
+    <ImageButton
+        android:id="@+id/top_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/fab_drawable"
+        android:layout_alignBottom="@+id/toolbar"
+        android:layout_marginBottom="-20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/abc_ic_search_api_mtrl_alpha"
+        android:visibility="invisible"/>
+
+    <android.support.v7.widget.SearchView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/fab_search"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:inputType="text"
+        app:queryHint="@string/search"
+        android:imeOptions="actionSearch"
+        app:elevation="4dp"
+        app:iconifiedByDefault="false"
+        android:layout_alignBottom="@+id/top_fab"
+        android:layout_toLeftOf="@+id/top_fab"
+        android:layout_toStartOf="@+id/top_fab"
+        android:layout_alignTop="@id/top_fab"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:visibility="invisible"
+        android:background="@android:color/white"/>
+</RelativeLayout>

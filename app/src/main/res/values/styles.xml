@@ -10,5 +10,18 @@
         <item name="android:textColorPrimary">#de000000</item>
         <item name="android:textColorSecondary">#8a000000</item>
         <item name="android:textColor">#de000000</item>
+        <item name="showcaseViewStyle">@style/CustomShowcaseTheme2</item>
+    </style>
+
+    <style name="CustomShowcaseTheme2" parent="ShowcaseView">
+        <item name="sv_backgroundColor">@color/color_primary_dark_alpha</item>
+        <item name="sv_showcaseColor">@color/color_primary</item>
+        <item name="sv_buttonText">Ok</item>
+        <item name="sv_buttonBackgroundColor">@color/red</item>
+        <item name="sv_tintButtonColor">false</item>
+    </style>
+
+    <style name="ShowcaseView.Custom.TitleText" parent="TextAppearance.ShowcaseView.Title">
+        <item name="android:textColor">#ff3c89d4</item>
     </style>
 </resources>

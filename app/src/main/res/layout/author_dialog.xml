@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/author_gravatar"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/cpan_logo"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#a0000000"
+        android:padding="4dp"
+        android:layout_alignBottom="@+id/author_gravatar">
+
+        <TextView
+            android:id="@+id/author_name"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:text="Author Name"
+            android:textColor="@android:color/white"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/releases_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/border_black"
+        android:text="Author Releases:"
+        android:layout_below="@+id/author_gravatar"
+        android:textSize="18sp"
+        android:padding="4dp"
+        android:elevation="4dp"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/releases_label"/>
+
+</RelativeLayout>

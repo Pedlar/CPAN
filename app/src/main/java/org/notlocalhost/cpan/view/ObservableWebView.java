@@ -1,7 +1,6 @@
 package org.notlocalhost.cpan.view;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.webkit.WebView;
 
